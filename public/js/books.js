@@ -1,5 +1,5 @@
-// Books module — loads from Firestore `books` (with static fallback).
-// Covers use Open Library by ISBN. Each book carries `isbn` (Bookshop) and optional `asin` (Amazon).
+// Books module — tries Firestore (`books`), falls back to cache/static.
+// Each book carries `isbn` (Bookshop/cover) + optional `asin` (Amazon) + optional `slug`.
 import { getDb, firestore } from './firebase-init.js';
 
 const cover = isbn => `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
@@ -19,17 +19,48 @@ export const STATIC_BOOKS = [
     blurb: 'How 1% better every day compounds into a life you actually want.' }
 ].map(b => ({ ...b, cover: cover(b.isbn) }));
 
+// Slug for dedicated pages (e.g. /the-housemaid).
+export function slugify(s) {
+  return (s || '').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '');
+}
+
+// Find a book by slug: explicit `slug` field if present, else derived from title.
+export function findBookBySlug(books, slug) {
+  const s = slugify(slug);
+  if (!s) return null;
+  return (books || []).find(b => slugify(b.slug || b.title) === s) || null;
+}
+
+// Local cache for instant paint (stale-while-revalidate).
+const CACHE_KEY = 'litreel_books_v1';
+
+export function getCachedBooks() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    return Array.isArray(arr) && arr.length ? arr : null;
+  } catch { return null; }
+}
+function cacheBooks(books) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(books)); } catch {} }
+
 export async function loadBooks() {
   const db = await getDb();
-  if (!db) return STATIC_BOOKS;
+  if (!db) return getCachedBooks() || STATIC_BOOKS;
   try {
     const { collection, getDocs, query, orderBy } = await firestore();
     const snap = await getDocs(query(collection(db, 'books'), orderBy('order')));
-    const books = snap.docs.map(d => d.data());
-    return books.length ? books : STATIC_BOOKS;
-  } catch (e) {
-    console.warn('Firestore unavailable, using static books:', e);
+    const books = snap.docs.map(d => {
+      const data = d.data();
+      const ts = data.createdAt;
+      const createdAt = ts && typeof ts.toMillis === 'function' ? ts.toMillis() : (typeof ts === 'number' ? ts : null);
+      return { ...data, createdAt };
+    });
+    if (books.length) { cacheBooks(books); return books; }
     return STATIC_BOOKS;
+  } catch (e) {
+    console.warn('Firestore unavailable, using cache/static:', e);
+    return getCachedBooks() || STATIC_BOOKS;
   }
 }
 

@@ -124,7 +124,7 @@
 </footer>
 
 <script type="module">
-import { loadBooks, saveLead } from './js/books.js';
+import { loadBooks, saveLead, slugify } from './js/books.js';
 import { buyLinks } from './js/affiliate.js';
 
 const grid = document.getElementById('book-grid');
@@ -134,10 +134,11 @@ function renderBook(b){
   const buttons = buyLinks(b).map(l =>
     `<a class="buy ${l.primary ? '' : 'alt'}" href="${l.url}" target="_blank" rel="sponsored noopener">${l.label}${l.primary ? ' →' : ''}</a>`
   ).join('');
+  const slug = slugify(b.slug || b.title || '');
   return `<div class="book">
-    <div class="cover">${b.cover ? `<img src="${b.cover}" alt="${b.title}" loading="lazy" onerror="this.remove()">` : '📚'}</div>
+    <a class="cover" href="/${slug}">${b.cover ? `<img src="${b.cover}" alt="${b.title}" loading="lazy" onerror="this.remove()">` : '📚'}</a>
     <div class="book-info">
-      <h4>${b.title || ''}</h4>
+      <h4><a href="/${slug}" style="color:inherit;text-decoration:none">${b.title || ''}</a></h4>
       <div class="author">${b.author || ''} · ${b.genre || ''}</div>
       ${b.blurb ? `<div class="blurb">${b.blurb}</div>` : ''}
       <div class="stars">${stars(b.rating || 5)}</div>

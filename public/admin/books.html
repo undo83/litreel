@@ -91,6 +91,7 @@
         <div style="flex:1"><label>ASIN (Amazon, optional)</label><input id="f-asin" placeholder="B0..."></div>
       </div>
       <div class="mt"><label>Cover — image URL</label><input id="f-cover" placeholder="https://covers.openlibrary.org/b/isbn/…-L.jpg"></div>
+      <div class="mt"><label>🔗 Short link (slug) — litreel.com/… (blank = auto from title)</label><input id="f-slug" placeholder="the-housemaid"></div>
       <div class="row mt">
         <div style="flex:2"><label>Author</label><input id="f-author" placeholder="Freida McFadden"></div>
         <div style="flex:2"><label>Genre</label><input id="f-genre" placeholder="Thriller"></div>
@@ -156,7 +157,7 @@ $('btn-cover').onclick = () => {
 };
 
 function resetForm() {
-  ['f-id','f-title','f-isbn','f-asin','f-cover','f-author','f-genre','f-blurb','f-tiktok','f-script'].forEach(id => $(id).value = '');
+  ['f-id','f-title','f-isbn','f-asin','f-slug','f-cover','f-author','f-genre','f-blurb','f-tiktok','f-script'].forEach(id => $(id).value = '');
   $('f-emoji').value = '📚'; $('f-rating').value = '5'; $('f-order').value = '1';
   $('form-title').textContent = 'Add a book';
   show('btn-cancel', false);
@@ -171,6 +172,7 @@ $('btn-save').onclick = async () => {
     emoji: $('f-emoji').value.trim() || '📚', rating: Number($('f-rating').value) || 5,
     blurb: $('f-blurb').value.trim(), order: Number($('f-order').value) || 0,
     isbn: $('f-isbn').value.trim().replace(/[^0-9Xx]/g, ''), asin: $('f-asin').value.trim(),
+    slug: $('f-slug').value.trim(),
     cover: $('f-cover').value.trim(), tiktokUrl: $('f-tiktok').value.trim(),
     videoScript: $('f-script').value.trim(), updatedAt: fs.serverTimestamp()
   };
@@ -210,7 +212,7 @@ function loadForEdit(id, b) {
   $('f-id').value = id; $('f-title').value = b.title || ''; $('f-author').value = b.author || '';
   $('f-genre').value = b.genre || ''; $('f-emoji').value = b.emoji || '📚'; $('f-rating').value = b.rating || 5;
   $('f-blurb').value = b.blurb || ''; $('f-order').value = b.order ?? 0;
-  $('f-isbn').value = b.isbn || ''; $('f-asin').value = b.asin || ''; $('f-cover').value = b.cover || '';
+  $('f-isbn').value = b.isbn || ''; $('f-asin').value = b.asin || ''; $('f-slug').value = b.slug || ''; $('f-cover').value = b.cover || '';
   $('f-tiktok').value = b.tiktokUrl || ''; $('f-script').value = b.videoScript || '';
   $('form-title').textContent = 'Edit: ' + b.title;
   show('btn-cancel', true);

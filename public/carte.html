@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LitReel — Book</title>
+<meta name="description" content="Short video book trailers. Find your next obsession.">
+<style>
+  :root{
+    --bg:#f7f5f2; --ink:#191622; --muted:#6b6675; --card:#ffffff;
+    --accent:#e0365b; --accent-2:#8b2fd6; --line:#e9e5df;
+    --shadow:0 8px 30px rgba(25,20,35,.10);
+    --radius:18px; --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:560px;margin:0 auto;padding:0 18px}
+  header{position:sticky;top:0;z-index:20;background:rgba(247,245,242,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;max-width:560px;margin:0 auto}
+  .logo{font-weight:800;font-size:20px;letter-spacing:-.3px;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .logo img{height:34px;width:auto;display:block}
+  .logo span{color:var(--accent)}
+  .nav a.home{font-size:13px;color:var(--muted);text-decoration:none;font-weight:600}
+  .detail{text-align:center;padding:34px 0 10px}
+  .cover-lg{width:220px;aspect-ratio:2/3;margin:0 auto 22px;border-radius:16px;overflow:hidden;
+    background:linear-gradient(150deg,var(--accent-2),var(--accent));display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:64px;box-shadow:0 14px 40px rgba(25,20,35,.22)}
+  .cover-lg img{width:100%;height:100%;object-fit:cover;display:block}
+  .detail h1{font-size:32px;line-height:1.15;letter-spacing:-.5px;margin-bottom:8px}
+  .detail .author{color:var(--muted);font-size:15px;margin-bottom:10px}
+  .detail .stars{color:var(--accent);font-size:18px;margin-bottom:16px}
+  .detail .blurb{font-size:16px;color:var(--ink);max-width:440px;margin:0 auto 24px}
+  .merchant-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:8px}
+  .buy{font-size:15px;font-weight:700;text-decoration:none;padding:13px 22px;border-radius:12px;background:var(--accent);color:#fff;
+    box-shadow:0 6px 18px rgba(224,54,91,.30)}
+  .buy.alt{background:#fff;color:var(--accent);border:1px solid var(--accent);box-shadow:none}
+  .back{display:inline-block;margin:26px 0 40px;color:var(--muted);text-decoration:none;font-weight:600;font-size:14px;
+    border:1px solid var(--line);background:#fff;padding:11px 20px;border-radius:12px;box-shadow:var(--shadow)}
+  .center{text-align:center}
+  .loading{text-align:center;color:var(--muted);font-size:15px;padding:60px 0}
+  .notfound{text-align:center;padding:60px 0}
+  .notfound h1{font-size:24px;margin-bottom:10px}
+  .notfound p{color:var(--muted);margin-bottom:22px}
+  .disclosure{background:#fff;border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:12px;color:var(--muted);margin:20px auto;max-width:440px}
+  footer{text-align:center;padding:30px 0 40px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:20px}
+  footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <a class="logo" href="/"><img src="/img/logo.png" alt="">Lit<span>Reel</span></a>
+    <a class="home" href="/">← All books</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <main id="host"><div class="loading">Loading…</div></main>
+</div>
+
+<footer>
+  <div class="wrap">
+    © 2026 LitReel · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> · <a href="/cookies">Cookies</a><br>
+    Book trailers worth the scroll · Made with 🎬 &amp; 📚
+  </div>
+</footer>
+
+<script type="module">
+import { loadBooks, getCachedBooks, findBookBySlug } from './js/books.js';
+import { buyLinks } from './js/affiliate.js';
+
+const host = document.getElementById('host');
+const stars = n => '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
+const esc = s => (s || '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+function currentSlug() {
+  const p = decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g, '').replace(/\.html$/i, '');
+  if (p && p !== 'carte') return p;
+  return new URLSearchParams(location.search).get('slug') || '';
+}
+
+function renderNotFound() {
+  document.title = 'Book not found — LitReel';
+  host.innerHTML = `<div class="notfound">
+    <div class="cover-lg" style="font-size:48px">🔎</div>
+    <h1>We couldn't find that book</h1>
+    <p>The link may be wrong, or the book was removed.</p>
+    <a class="back" href="/">← See all picks</a>
+  </div>`;
+}
+
+function renderBook(b) {
+  document.title = `${b.title} — LitReel`;
+  const md = document.querySelector('meta[name="description"]');
+  if (md && b.blurb) md.setAttribute('content', `${b.title} — ${b.blurb}`);
+
+  const merchants = buyLinks(b)
+    .map(l => `<a class="buy ${l.primary ? '' : 'alt'}" href="${l.url}" target="_blank" rel="sponsored noopener">${esc(l.label)}${l.primary ? ' →' : ''}</a>`)
+    .join('');
+
+  host.innerHTML = `<article class="detail">
+    <div class="cover-lg">${b.cover ? `<img src="${esc(b.cover)}" alt="${esc(b.title)}">` : (b.emoji || '📚')}</div>
+    <h1>${esc(b.title)}</h1>
+    <div class="author">${esc(b.author || '')}${b.author && b.genre ? ' · ' : ''}${esc(b.genre || '')}</div>
+    <div class="stars">${stars(b.rating || 5)}</div>
+    ${b.blurb ? `<p class="blurb">${esc(b.blurb)}</p>` : ''}
+    ${merchants ? `<div class="merchant-row">${merchants}</div>` : ''}
+  </article>
+  <div class="center"><a class="back" href="/">← Back to all books</a></div>
+  <div class="disclosure"><strong>Heads up:</strong> LitReel may earn a small commission if you buy through our links, at no extra cost to you. On Bookshop.org your purchase also supports independent bookstores.</div>`;
+}
+
+function show(books) {
+  const book = findBookBySlug(books, currentSlug());
+  if (book) renderBook(book); else renderNotFound();
+}
+
+const cached = getCachedBooks();
+if (cached) show(cached);
+try {
+  const books = await loadBooks();
+  if (JSON.stringify(books) !== JSON.stringify(cached)) show(books);
+} catch (e) {
+  if (!cached) renderNotFound();
+  console.error(e);
+}
+</script>
+<script src="/js/cookie-consent.js"></script>
+</body>
+</html>

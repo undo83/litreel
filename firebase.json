@@ -8,6 +8,9 @@
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       }
     ],
+    "rewrites": [
+      { "source": "**", "destination": "/carte.html" }
+    ],
     "cleanUrls": true
   },
   "firestore": {
