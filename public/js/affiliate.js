@@ -20,10 +20,14 @@ export function bookshopUrl(book) {
   return `https://bookshop.org/a/${BOOKSHOP_ID}/${book.isbn}`;
 }
 
-// Buttons to render for a book: Amazon worldwide (primary) + Bookshop where available.
+// Buttons for a book. Bookshop is our configured earner (10%) → primary.
+// Amazon only shows once we actually have a tag (otherwise it earns nothing).
 export function buyLinks(book) {
-  const links = [{ label: 'Get it on Amazon', url: amazonUrl(book), primary: true }];
+  const links = [];
   const bs = bookshopUrl(book);
-  if (bs) links.push({ label: 'Indie · Bookshop', url: bs, primary: false });
+  if (bs) links.push({ label: 'Get it on Bookshop', url: bs, primary: true });
+  if (has(AMAZON_TAG)) links.push({ label: bs ? 'Amazon' : 'Get it on Amazon', url: amazonUrl(book), primary: !bs });
+  // Never leave a dead card: if nothing is configured, fall back to Amazon search.
+  if (!links.length) links.push({ label: 'Get it on Amazon', url: amazonUrl(book), primary: true });
   return links;
 }
