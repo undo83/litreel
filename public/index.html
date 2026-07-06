@@ -17,7 +17,8 @@
   .wrap{max-width:520px;margin:0 auto;padding:0 18px}
   header{position:sticky;top:0;z-index:20;background:rgba(247,245,242,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
   .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;max-width:520px;margin:0 auto}
-  .logo{font-weight:800;font-size:20px;letter-spacing:-.4px}
+  .logo{font-weight:800;font-size:20px;letter-spacing:-.4px;display:flex;align-items:center;gap:8px}
+  .logo-icon{height:34px;width:auto;display:block}
   .logo span{color:var(--accent)}
   .nav a{font-size:13px;color:var(--muted);text-decoration:none;font-weight:600}
   .hero{text-align:center;padding:36px 0 22px}
@@ -57,7 +58,7 @@
 <body>
 <header>
   <div class="nav">
-    <div class="logo">Lit<span>Reel</span></div>
+    <div class="logo"><img class="logo-icon" src="/img/logo.png" alt="">Lit<span>Reel</span></div>
     <a href="#picks">Picks</a>
   </div>
 </header>
