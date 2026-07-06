@@ -2,7 +2,7 @@
 // Both IDs are PUBLIC (they appear in every affiliate link). Fill them after signup.
 
 export const AMAZON_TAG = 'TODO';   // e.g. 'litreel-20' (from Amazon Associates)
-export const BOOKSHOP_ID = 'TODO';  // numeric id (from Bookshop.org affiliate dashboard)
+export const BOOKSHOP_ID = '125925';  // Bookshop.org affiliate id
 
 const has = v => v && !String(v).includes('TODO');
 

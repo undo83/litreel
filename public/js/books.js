@@ -2,7 +2,8 @@
 // Each book carries `isbn` (Bookshop/cover) + optional `asin` (Amazon) + optional `slug`.
 import { getDb, firestore } from './firebase-init.js';
 
-const cover = isbn => `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+// Bookshop.org's Ingram CDN — sharp, consistent covers (we affiliate there anyway).
+const cover = isbn => `https://images-us.bookshop.org/ingram/${isbn}.jpg`;
 
 export const STATIC_BOOKS = [
   { order: 1, title: 'The Housemaid', author: 'Freida McFadden', genre: 'Thriller', rating: 5, isbn: '9781538742570',

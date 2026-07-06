@@ -117,7 +117,7 @@
           </div>
           <div style="flex:1"><label>ASIN (Amazon, optional)</label><input id="f-asin" placeholder="B0…"></div>
         </div>
-        <div class="mt"><label>Cover — image URL</label><input id="f-cover" placeholder="https://covers.openlibrary.org/b/isbn/…-L.jpg"></div>
+        <div class="mt"><label>Cover — image URL</label><input id="f-cover" placeholder="https://images-us.bookshop.org/ingram/…​.jpg"></div>
         <div class="mt">
           <label>🔗 Short link (slug) — dedicated page <code id="slug-preview">litreel.com/…</code></label>
           <input id="f-slug" placeholder="the-housemaid (blank = auto from title)">
@@ -190,11 +190,11 @@ onAuthStateChanged(auth, async (user) => {
   await renderList();
 });
 
-// Cover from ISBN (Open Library)
+// Cover from ISBN (Bookshop.org Ingram CDN)
 $('btn-cover').onclick = () => {
   const isbn = $('f-isbn').value.trim().replace(/[^0-9Xx]/g, '');
   if (!isbn) return alert('Enter an ISBN first.');
-  $('f-cover').value = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
+  $('f-cover').value = `https://images-us.bookshop.org/ingram/${isbn}.jpg`;
 };
 
 // Live slug preview
