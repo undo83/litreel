@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env / secrete (config-ul web Firebase NU e secret, rămâne în repo)
+.env
+.env.*
+serviceAccountKey.json
+
+# Script local de explorare API (rulat o singură dată, nu în repo)
+explore-2p.mjs
+
+# Asset-uri de producție video/audio (binare mari — doar local, nu în repo)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+content/**/*.webp
