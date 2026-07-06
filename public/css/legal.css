@@ -1,6 +1,6 @@
 :root{
-  --bg:#faf6f0; --ink:#2b2218; --muted:#7a6a55; --card:#fff;
-  --accent:#b5512f; --line:#ece3d6; --shadow:0 8px 30px rgba(80,55,30,.08);
+  --bg:#f7f5f2; --ink:#191622; --muted:#6b6675; --card:#fff;
+  --accent:#e0365b; --line:#e9e5df; --shadow:0 8px 30px rgba(25,20,35,.08);
   --font:'Segoe UI',system-ui,-apple-system,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
