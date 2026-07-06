@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Books Admin — LitReel (internal)</title>
+<title>Admin — LitReel (internal)</title>
+<link rel="icon" href="/img/logo.png">
 <style>
   :root{
     --bg:#0f1320; --panel:#171c2e; --panel-2:#1e2438; --ink:#e8ecf6; --muted:#8b94ad;
@@ -11,9 +12,10 @@
     --font:'Segoe UI',system-ui,-apple-system,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--font);background:var(--bg);color:var(--ink);padding:24px 16px 60px}
-  .wrap{max-width:900px;margin:0 auto}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);min-height:100vh}
   h1{font-size:24px;margin-bottom:4px}
+  h2{font-size:20px;margin-bottom:6px}
+  h3{font-size:16px}
   .lead{color:var(--muted);font-size:14px;margin-bottom:20px}
   button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:600;font-size:14px;padding:11px 16px}
   .btn{background:var(--accent);color:#fff}
@@ -25,100 +27,141 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:18px}
   .row{display:flex;gap:12px;flex-wrap:wrap}
   .row > div{flex:1;min-width:120px}
-  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-  .tag{font-size:11px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);padding:4px 10px;border-radius:999px}
+  .inline{display:flex;gap:8px;align-items:flex-end}
+  .inline button{white-space:nowrap}
   .banner{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:16px;line-height:1.5}
   .banner.bad{background:rgba(239,106,106,.12);border:1px solid rgba(239,106,106,.4);color:var(--bad)}
   .hidden{display:none!important}
   .book-item{display:flex;gap:12px;align-items:center;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}
   .book-item .emoji{font-size:24px}
-  .book-item .meta{flex:1}
+  .book-item .meta{flex:1;min-width:0}
   .book-item .meta b{font-size:14px}
   .book-item .meta span{display:block;font-size:12px;color:var(--muted)}
   .book-item .acts{display:flex;gap:6px}
   .book-item .acts button{padding:6px 10px;font-size:12px}
   .mt{margin-top:12px}
   .small{font-size:12px;color:var(--muted)}
-  .user-chip{display:flex;align-items:center;gap:8px;font-size:13px}
-  .user-chip img{width:26px;height:26px;border-radius:50%}
   code{background:var(--panel-2);padding:1px 6px;border-radius:5px;color:var(--accent)}
-  .inline{display:flex;gap:8px;align-items:flex-end}
-  .inline button{white-space:nowrap}
+
+  .center-wrap{max-width:460px;margin:0 auto;padding:60px 16px}
+  .app-shell{display:flex;min-height:100vh;align-items:stretch}
+  .sidebar{width:230px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;padding:20px 14px;position:sticky;top:0;height:100vh}
+  .brand{font-size:17px;font-weight:800;margin-bottom:22px;padding:0 6px;display:flex;align-items:center;gap:8px}
+  .brand img{height:26px}
+  .brand span{color:var(--accent)}
+  .nav{display:flex;flex-direction:column;gap:4px}
+  .nav-item{display:block;width:100%;text-align:left;background:transparent;color:var(--muted);border-radius:10px;padding:11px 12px;font-weight:600}
+  .nav-item:hover{background:var(--panel-2);color:var(--ink)}
+  .nav-item.active{background:var(--accent);color:#fff}
+  .user-area{margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+  .user-chip{display:flex;align-items:center;gap:8px;font-size:12px;flex-wrap:wrap}
+  .user-chip img{width:24px;height:24px;border-radius:50%}
+  .content{flex:1;min-width:0;padding:28px 26px 60px;max-width:920px}
+
+  @media (max-width:720px){
+    .app-shell{flex-direction:column}
+    .sidebar{width:auto;height:auto;position:static;flex-direction:row;align-items:center;overflow-x:auto;padding:12px;gap:10px}
+    .brand{margin-bottom:0;white-space:nowrap}
+    .nav{flex-direction:row;gap:6px}
+    .nav-item{white-space:nowrap;padding:9px 12px}
+    .user-area{margin:0 0 0 auto;padding:0 0 0 12px;border:none;border-left:1px solid var(--line)}
+    .content{padding:20px 16px 50px}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topbar">
-    <div>
-      <h1>🎬 LitReel · Books Admin</h1>
-      <p class="lead">Add / edit the books shown on the site (<code>books</code> collection).</p>
-    </div>
-    <div id="user-area"><span class="tag">LitReel · internal</span></div>
-  </div>
 
-  <div id="cfg-banner" class="banner bad hidden">
-    ⚠️ Firebase is not configured. Fill <code>public/js/firebase-config.js</code> and reload.
-  </div>
+<div id="cfg-banner" class="banner bad hidden" style="margin:16px">
+  ⚠️ Firebase is not configured. Fill <code>public/js/firebase-config.js</code> and reload.
+</div>
 
-  <div id="login-screen" class="card hidden" style="text-align:center;padding:40px 18px">
-    <p class="lead" style="margin-bottom:18px">Sign in with Google to manage books.</p>
-    <button class="btn" id="btn-login">Sign in with Google</button>
-  </div>
+<div id="login-screen" class="center-wrap hidden" style="text-align:center">
+  <h1>🎬 LitReel Admin</h1>
+  <p class="lead" style="margin:16px 0 20px">Sign in with Google to manage books.</p>
+  <button class="btn" id="btn-login">Sign in with Google</button>
+</div>
 
-  <div id="denied-screen" class="hidden">
-    <div class="banner bad">
-      <b id="denied-email"></b> is not an admin. UID: <code id="denied-uid"></code>
-    </div>
-    <button class="btn-ghost" id="btn-logout-2">Switch account</button>
-  </div>
+<div id="denied-screen" class="center-wrap hidden">
+  <div class="banner bad"><b id="denied-email"></b> is not an admin. UID: <code id="denied-uid"></code></div>
+  <button class="btn-ghost" id="btn-logout-2">Switch account</button>
+</div>
 
-  <div id="app" class="hidden">
-    <div class="card">
-      <h3 id="form-title" style="margin-bottom:14px">Add a book</h3>
-      <input type="hidden" id="f-id">
-      <div class="row">
-        <div style="flex:3"><label>Title</label><input id="f-title" placeholder="The Housemaid"></div>
-        <div><label>Emoji (fallback)</label><input id="f-emoji" placeholder="📚" value="📚"></div>
-        <div><label>Order</label><input id="f-order" type="number" placeholder="1" value="1"></div>
-      </div>
-      <div class="row mt">
-        <div style="flex:2"><label>ISBN-13 (for Bookshop + cover)</label>
-          <div class="inline">
-            <input id="f-isbn" placeholder="9781538742570">
-            <button class="btn-ghost" type="button" id="btn-cover" style="font-size:12px;padding:9px 12px">Cover from ISBN</button>
-          </div>
+<div id="app-shell" class="app-shell hidden">
+  <aside class="sidebar">
+    <div class="brand"><img src="/img/logo.png" alt="">Lit<span>Reel</span></div>
+    <nav class="nav">
+      <button class="nav-item active" data-view="add" type="button">➕ Add Book</button>
+      <button class="nav-item" data-view="list" type="button">📚 Book List</button>
+    </nav>
+    <div id="user-area" class="user-area"></div>
+  </aside>
+
+  <main class="content">
+    <!-- VIEW: Add Book -->
+    <section id="view-add" class="view">
+      <div class="card">
+        <h3 id="form-title" style="margin-bottom:14px">Add a book</h3>
+        <input type="hidden" id="f-id">
+        <div class="row">
+          <div style="flex:3"><label>Title</label><input id="f-title" placeholder="The Housemaid"></div>
+          <div><label>Emoji (fallback)</label><input id="f-emoji" placeholder="📚" value="📚"></div>
+          <div><label>Order</label><input id="f-order" type="number" placeholder="1" value="1"></div>
         </div>
-        <div style="flex:1"><label>ASIN (Amazon, optional)</label><input id="f-asin" placeholder="B0..."></div>
+        <div class="row mt">
+          <div style="flex:2"><label>ISBN-13 (Bookshop + cover)</label>
+            <div class="inline">
+              <input id="f-isbn" placeholder="9781538742570">
+              <button class="btn-ghost" type="button" id="btn-cover" style="font-size:12px;padding:9px 12px">Cover from ISBN</button>
+            </div>
+          </div>
+          <div style="flex:1"><label>ASIN (Amazon, optional)</label><input id="f-asin" placeholder="B0…"></div>
+        </div>
+        <div class="mt"><label>Cover — image URL</label><input id="f-cover" placeholder="https://covers.openlibrary.org/b/isbn/…-L.jpg"></div>
+        <div class="mt">
+          <label>🔗 Short link (slug) — dedicated page <code id="slug-preview">litreel.com/…</code></label>
+          <input id="f-slug" placeholder="the-housemaid (blank = auto from title)">
+        </div>
+        <div class="row mt">
+          <div style="flex:2"><label>Author</label><input id="f-author" placeholder="Freida McFadden"></div>
+          <div style="flex:2"><label>Genre</label><input id="f-genre" placeholder="Thriller"></div>
+          <div><label>Rating (1-5)</label><input id="f-rating" type="number" min="1" max="5" value="5"></div>
+        </div>
+        <div class="mt"><label>Blurb (one selling line, no spoilers)</label><textarea id="f-blurb" rows="2" placeholder="A short line that sells the book."></textarea></div>
+        <div class="mt"><label>🎬 TikTok video link (shows in „Latest trailers")</label><input id="f-tiktok" placeholder="https://www.tiktok.com/@litreel/video/…"></div>
+        <div class="mt"><label>📝 Video script (internal — hook + body + CTA)</label><textarea id="f-script" rows="6" placeholder="[HOOK] …&#10;[BODY] …&#10;[CTA] …"></textarea></div>
+        <div class="row mt" style="justify-content:flex-end">
+          <button class="btn-ghost hidden" id="btn-cancel" type="button" style="flex:0">Cancel</button>
+          <button class="btn" id="btn-save" type="button" style="flex:0">Save book</button>
+        </div>
       </div>
-      <div class="mt"><label>Cover — image URL</label><input id="f-cover" placeholder="https://covers.openlibrary.org/b/isbn/…-L.jpg"></div>
-      <div class="mt"><label>🔗 Short link (slug) — litreel.com/… (blank = auto from title)</label><input id="f-slug" placeholder="the-housemaid"></div>
-      <div class="row mt">
-        <div style="flex:2"><label>Author</label><input id="f-author" placeholder="Freida McFadden"></div>
-        <div style="flex:2"><label>Genre</label><input id="f-genre" placeholder="Thriller"></div>
-        <div><label>Rating (1-5)</label><input id="f-rating" type="number" min="1" max="5" value="5"></div>
-      </div>
-      <div class="mt"><label>Blurb (one selling line, no spoilers)</label><textarea id="f-blurb" rows="2" placeholder="A short line that sells the book."></textarea></div>
-      <div class="mt"><label>🎬 TikTok video link (shows in „Latest trailers")</label><input id="f-tiktok" placeholder="https://www.tiktok.com/@litreel/video/…"></div>
-      <div class="mt"><label>📝 Video script (internal — hook + body + CTA)</label><textarea id="f-script" rows="6" placeholder="[HOOK] …&#10;[BODY] …&#10;[CTA] …"></textarea></div>
-      <div class="row mt" style="justify-content:flex-end">
-        <button class="btn-ghost hidden" id="btn-cancel" type="button" style="flex:0">Cancel</button>
-        <button class="btn" id="btn-save" type="button" style="flex:0">Save book</button>
-      </div>
-    </div>
+    </section>
 
-    <h3 style="margin:18px 0 10px">Published books (<span id="count">0</span>)</h3>
-    <div id="book-list"><p class="small">Loading…</p></div>
-  </div>
+    <!-- VIEW: Book List -->
+    <section id="view-list" class="view hidden">
+      <h2>Published books (<span id="count">0</span>)</h2>
+      <p class="lead">Edit or delete books from the <code>books</code> collection.</p>
+      <div id="book-list"><p class="small">Loading…</p></div>
+    </section>
+  </main>
 </div>
 
 <script type="module">
 import { isConfigured, getAuth, authMod, getDb, firestore } from '../js/firebase-init.js';
+import { slugify } from '../js/books.js';
 
 const ADMIN_EMAILS = ['alex@rsjoomla.com'];
 const $ = id => document.getElementById(id);
 const show = (id, on=true) => $(id).classList.toggle('hidden', !on);
 
 if (!isConfigured) { show('cfg-banner', true); throw new Error('Firebase not configured'); }
+
+const VIEWS = ['add', 'list'];
+function switchView(name) {
+  VIEWS.forEach(v => show('view-' + v, v === name));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+}
+document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => switchView(b.dataset.view));
 
 const auth = await getAuth();
 const { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } = await authMod();
@@ -131,19 +174,17 @@ let db, fs;
 
 onAuthStateChanged(auth, async (user) => {
   show('login-screen', !user);
-  show('app', false); show('denied-screen', false);
-  $('user-area').innerHTML = '<span class="tag">LitReel · internal</span>';
+  show('app-shell', false); show('denied-screen', false);
   if (!user) return;
-
   if (!ADMIN_EMAILS.includes(user.email)) {
     $('denied-email').textContent = user.email;
     $('denied-uid').textContent = user.uid;
     show('denied-screen', true);
     return;
   }
-  $('user-area').innerHTML = `<div class="user-chip">${user.photoURL ? `<img src="${user.photoURL}" alt="">` : ''}<span>${user.email}</span><button class="btn-ghost" id="btn-logout" style="padding:6px 10px;font-size:12px">Sign out</button></div>`;
+  $('user-area').innerHTML = `<div class="user-chip">${user.photoURL ? `<img src="${user.photoURL}" alt="">` : ''}<span>${user.email}</span><button class="btn-ghost" id="btn-logout" style="padding:5px 9px;font-size:11px">Sign out</button></div>`;
   $('btn-logout').onclick = logout;
-  show('app', true);
+  show('app-shell', true);
   db = await getDb();
   fs = await firestore();
   await renderList();
@@ -156,9 +197,18 @@ $('btn-cover').onclick = () => {
   $('f-cover').value = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
 };
 
+// Live slug preview
+function updateSlugPreview() {
+  const s = slugify($('f-slug').value.trim() || $('f-title').value.trim());
+  $('slug-preview').textContent = s ? 'litreel.com/' + s : 'litreel.com/…';
+}
+$('f-slug').addEventListener('input', updateSlugPreview);
+$('f-title').addEventListener('input', updateSlugPreview);
+
 function resetForm() {
   ['f-id','f-title','f-isbn','f-asin','f-slug','f-cover','f-author','f-genre','f-blurb','f-tiktok','f-script'].forEach(id => $(id).value = '');
   $('f-emoji').value = '📚'; $('f-rating').value = '5'; $('f-order').value = '1';
+  updateSlugPreview();
   $('form-title').textContent = 'Add a book';
   show('btn-cancel', false);
 }
@@ -172,17 +222,23 @@ $('btn-save').onclick = async () => {
     emoji: $('f-emoji').value.trim() || '📚', rating: Number($('f-rating').value) || 5,
     blurb: $('f-blurb').value.trim(), order: Number($('f-order').value) || 0,
     isbn: $('f-isbn').value.trim().replace(/[^0-9Xx]/g, ''), asin: $('f-asin').value.trim(),
-    slug: $('f-slug').value.trim(),
+    slug: slugify($('f-slug').value.trim() || title),
     cover: $('f-cover').value.trim(), tiktokUrl: $('f-tiktok').value.trim(),
     videoScript: $('f-script').value.trim(), updatedAt: fs.serverTimestamp()
   };
-  const { collection, doc, addDoc, setDoc } = fs;
+  const { collection, doc, addDoc, setDoc, getDocs } = fs;
   const id = $('f-id').value;
+  const btn = $('btn-save');
+  btn.disabled = true;
   try {
+    const snap = await getDocs(collection(db, 'books'));
+    const clash = snap.docs.find(d => d.id !== id && slugify(d.data().slug || d.data().title) === data.slug);
+    if (clash) return alert(`Short link „litreel.com/${data.slug}" is already used by „${clash.data().title}". Pick another slug.`);
     if (id) await setDoc(doc(db, 'books', id), data, { merge: true });
     else await addDoc(collection(db, 'books'), { ...data, createdAt: fs.serverTimestamp() });
-    resetForm(); await renderList();
+    resetForm(); await renderList(); switchView('list');
   } catch (e) { alert('Save error: ' + e.message); }
+  finally { btn.disabled = false; }
 };
 
 async function renderList() {
@@ -195,11 +251,12 @@ async function renderList() {
     list.innerHTML = '';
     snap.forEach(d => {
       const b = d.data();
+      const slug = b.slug || slugify(b.title);
       const el = document.createElement('div');
       el.className = 'book-item';
       el.innerHTML = `
         ${b.cover ? `<img src="${b.cover}" style="width:34px;height:50px;object-fit:cover;border-radius:5px" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'emoji',textContent:'${b.emoji||'📚'}'}))">` : `<span class="emoji">${b.emoji || '📚'}</span>`}
-        <div class="meta"><b>${b.title}</b><span>${b.author || ''} · ${b.genre || ''} · ⭐${b.rating || ''} · #${b.order ?? ''}${b.isbn ? ' · ISBN ✓' : ''}${b.tiktokUrl ? ' · ▶️' : ''}</span></div>
+        <div class="meta"><b>${b.title}</b><span>${b.author || ''} · ${b.genre || ''} · ⭐${b.rating || ''} · #${b.order ?? ''}${b.isbn ? ' · ISBN ✓' : ''}${b.tiktokUrl ? ' · ▶️' : ''}${b.videoScript ? ' · 🎬' : ''}</span><span>🔗 <a href="/${slug}" target="_blank" style="color:var(--accent)">litreel.com/${slug}</a></span></div>
         <div class="acts"><button class="btn-ghost edit">Edit</button><button class="btn-bad del">Delete</button></div>`;
       el.querySelector('.edit').onclick = () => loadForEdit(d.id, b);
       el.querySelector('.del').onclick = () => removeBook(d.id, b.title);
@@ -214,8 +271,10 @@ function loadForEdit(id, b) {
   $('f-blurb').value = b.blurb || ''; $('f-order').value = b.order ?? 0;
   $('f-isbn').value = b.isbn || ''; $('f-asin').value = b.asin || ''; $('f-slug').value = b.slug || ''; $('f-cover').value = b.cover || '';
   $('f-tiktok').value = b.tiktokUrl || ''; $('f-script').value = b.videoScript || '';
+  updateSlugPreview();
   $('form-title').textContent = 'Edit: ' + b.title;
   show('btn-cancel', true);
+  switchView('add');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
