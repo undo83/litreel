@@ -111,11 +111,13 @@
           <div><label>Order</label><input id="f-order" type="number" placeholder="1" value="1"></div>
         </div>
         <div class="row mt">
-          <div style="flex:2"><label>ISBN-13 (Bookshop + cover)</label>
+          <div style="flex:2"><label>ISBN-13 — autofill title, author, genre + cover</label>
             <div class="inline">
               <input id="f-isbn" placeholder="9781538742570">
-              <button class="btn-ghost" type="button" id="btn-cover" style="font-size:12px;padding:9px 12px">Cover from ISBN</button>
+              <button class="btn" type="button" id="btn-autofill" style="font-size:12px;padding:9px 12px">Autofill</button>
+              <button class="btn-ghost" type="button" id="btn-cover" style="font-size:12px;padding:9px 12px">Cover only</button>
             </div>
+            <p id="isbn-status" class="small mt hidden"></p>
           </div>
           <div style="flex:1"><label>ASIN (Amazon, optional)</label><input id="f-asin" placeholder="B0…"></div>
         </div>
@@ -197,6 +199,67 @@ $('btn-cover').onclick = () => {
   const isbn = $('f-isbn').value.trim().replace(/[^0-9Xx]/g, '');
   if (!isbn) return alert('Enter an ISBN first.');
   $('f-cover').value = `https://images-us.bookshop.org/ingram/${isbn}.jpg`;
+};
+
+// Autofill title / author / genre from ISBN.
+// Bookshop.org has no public API and blocks browser scraping (CORS), so metadata
+// comes from Google Books (→ Open Library fallback); the cover stays Bookshop's CDN.
+const GENERIC = /^(fiction|nonfiction|non-fiction|juvenile fiction|juvenile nonfiction|general|literary|literature|contemporary|novel|books|ebook|adult)$/i;
+// Google Books: "Fiction / Thrillers / Suspense" → most specific non-generic part.
+const pickGenre = (categories) => {
+  if (!categories || !categories.length) return '';
+  const parts = categories[0].split('/').map(s => s.trim()).filter(Boolean);
+  return [...parts].reverse().find(p => !GENERIC.test(p)) || parts[0] || '';
+};
+// Open Library subjects are noisy: "nyt:...=2023", "New York Times bestseller",
+// "Series:The-Housemaid", "Fiction, thrillers, domestic". Keep the first clean genre.
+const pickSubject = (subjects) => {
+  const junk = /[:=,]|bestseller|new york times|award|^series\b/i;
+  return (subjects || [])
+    .map(s => (typeof s === 'string' ? s : s && s.name) || '')
+    .map(s => s.trim())
+    .find(s => s && s.length <= 24 && !junk.test(s) && !GENERIC.test(s)) || '';
+};
+async function lookupGoogleBooks(isbn) {
+  const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+  if (!r.ok) throw new Error('Google Books ' + r.status);
+  const v = (await r.json())?.items?.[0]?.volumeInfo;
+  if (!v) return null;
+  return { title: v.title || '', author: (v.authors || []).join(', '), genre: pickGenre(v.categories) };
+}
+async function lookupOpenLibrary(isbn) {
+  const r = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+  if (!r.ok) throw new Error('Open Library ' + r.status);
+  const d = (await r.json())['ISBN:' + isbn];
+  if (!d) return null;
+  return { title: d.title || '', author: (d.authors || []).map(a => a.name).join(', '), genre: pickSubject(d.subjects) };
+}
+function setStatus(msg, kind) {
+  const el = $('isbn-status');
+  el.textContent = msg;
+  el.style.color = kind === 'bad' ? 'var(--bad)' : kind === 'ok' ? 'var(--ok)' : 'var(--muted)';
+  show('isbn-status', !!msg);
+}
+$('btn-autofill').onclick = async () => {
+  const isbn = $('f-isbn').value.trim().replace(/[^0-9Xx]/g, '');
+  if (!isbn) return alert('Enter an ISBN first.');
+  const btn = $('btn-autofill');
+  btn.disabled = true; setStatus('Fetching…', 'muted');
+  try {
+    const data = await lookupGoogleBooks(isbn).catch(() => null) || await lookupOpenLibrary(isbn).catch(() => null);
+    if (!data) { setStatus(`No book found for ISBN ${isbn}. Fill the fields manually.`, 'bad'); return; }
+    const setIfEmpty = (id, val) => { if (val && !$(id).value.trim()) { $(id).value = val; return true; } return false; };
+    const filled = [
+      setIfEmpty('f-title', data.title) && 'title',
+      setIfEmpty('f-author', data.author) && 'author',
+      setIfEmpty('f-genre', data.genre) && 'genre',
+    ].filter(Boolean);
+    if (!$('f-cover').value.trim()) { $('f-cover').value = `https://images-us.bookshop.org/ingram/${isbn}.jpg`; filled.push('cover'); }
+    updateSlugPreview();
+    setStatus(filled.length ? `✓ Filled: ${filled.join(', ')} (only empty fields were touched).` : 'Everything was already filled — nothing changed.', 'ok');
+  } catch (e) {
+    setStatus('Lookup error: ' + e.message, 'bad');
+  } finally { btn.disabled = false; }
 };
 
 // Live slug preview
